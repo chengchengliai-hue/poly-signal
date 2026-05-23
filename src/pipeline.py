@@ -20,7 +20,7 @@ from rich.live import Live
 from rich.panel import Panel
 
 from src.config import (
-    ANTHROPIC_API_KEY, TG_BOT_TOKEN, TG_CHAT_ID,
+    DEEPSEEK_API_KEY, TG_BOT_TOKEN, TG_CHAT_ID,
     POLYMARKET_API_KEY, MAX_BET_USD, EDGE_THRESHOLD,
 )
 from src.markets import fetch_niche_markets, Market
@@ -46,7 +46,7 @@ async def run_pipeline(dry_run: bool = True):
     """Main event-driven pipeline."""
     console.print(Panel.fit(
         "[bold green]PolySignal V1[/]\n"
-        f"Anthropic: {'✓' if ANTHROPIC_API_KEY else '✗'}  "
+        f"DeepSeek: {'✓' if DEEPSEEK_API_KEY else '✗'}  "
         f"Telegram: {'✓' if TG_BOT_TOKEN else '✗'}  "
         f"Polymarket: {'✓' if POLYMARKET_API_KEY else '✗ (dry_run)'}\n"
         f"Max bet: ${MAX_BET_USD}  Edge threshold: {EDGE_THRESHOLD}",
