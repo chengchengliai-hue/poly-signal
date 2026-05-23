@@ -126,8 +126,10 @@ def get_copy_trade_summary() -> str:
         lines = [f"<b>📊 跟单信号</b> | {total}笔 | 持仓{open_pos} | 盈亏{pnl_sign}{abs(total_pnl):.2f} | 投入${total_invested:.0f}\n"]
         for r in rows:
             dir_emoji = "📈" if r[0] == "BUY_YES" else "📉"
-            pnl_str = f"+${r[4]:.2f}" if (r[4] or 0) >= 0 else f"-${abs(r[4] or 0):.2f}"
-            cur_price = f"→ ${r[3]:.2f}" if r[3] else "待更新"
+            p = r[4] or 0
+            pnl_str = f"+${p:.2f}" if p >= 0 else f"-${abs(p):.2f}"
+            cp = r[3] or 0
+            cur_price = f"→ ${cp:.2f}" if cp > 0 else "待更新"
             lines.append(
                 f"{dir_emoji} #{r[0]} 入场${r[2]:.2f} {cur_price} | {pnl_str}\n"
                 f"    {r[7][:50]}\n"
