@@ -111,7 +111,7 @@ def get_copy_trade_summary() -> str:
     try:
         conn = sqlite3.connect("/opt/poly-signal/data/positions.db")
         rows = conn.execute(
-            "SELECT id, direction, round(entry_price,2), COALESCE(round(current_price,2), 0) as cur_price, round(pnl_usd,2), "
+            "SELECT id, direction, round(entry_price,2), COALESCE(round(current_price,2), 0) as cur_price, COALESCE(round(pnl_usd,2), 0) as pnl, "
             "bet_usd, round(shares,2), market_question, headline, substr(entry_time,12,5) "
             "FROM positions ORDER BY id DESC LIMIT 12"
         ).fetchall()
