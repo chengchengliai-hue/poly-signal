@@ -163,8 +163,8 @@ async def run_pipeline(dry_run: bool = True):
                 log_trade(signal, result)
 
                 # Telegram alert
-                tg_msg = build_telegram_message(signal, result)
-                await send_telegram(tg_msg)
+                tg_msg, buttons = build_telegram_message(signal, result)
+                await send_telegram(tg_msg, buttons)
 
         except Exception as e:
             log.error(f"Pipeline error: {e}")
@@ -190,22 +190,28 @@ def display_signal(signal: Signal, pos=None):
     console.print("─" * 60)
 
 
-def build_telegram_message(signal: Signal, result: dict) -> str:
+def build_telegram_message(signal: Signal, result: dict) -> tuple[str, list]:
     status_emoji = {"submitted": "🟢", "filled": "🟢", "dry_run": "🧪", "failed": "⚠️"}
-    status_text = {"submitted": "已开仓", "filled": "已开仓", "dry_run": "模拟跟单", "failed": "失败"}
-    emoji = status_emoji.get(result.get("status", "dry_run"), "🧪")
-    status_cn = status_text.get(result.get("status", "dry_run"), "未知")
-
     direction_emoji = "📈" if signal.direction == "BUY_YES" else "📉"
     direction_cn = "买YES看多" if signal.direction == "BUY_YES" else "买NO看空"
-    return (
-        f"{emoji} 跟单信号 {direction_emoji}\n\n"
-        f"市场：{signal.market.question}\n"
-        f"方向：{direction_cn}\n"
-        f"跟单：$10 @ ${signal.market_price:.2f}\n"
-        f"信号强度：{signal.claude_materiality:.2f}（偏差{signal.edge:.3f}）\n"
-        f"新闻：{signal.headline[:200]}\n"
-        f"来源：{signal.source}\n"
-        f"理由：{signal.reasoning}\n"
-        f"时间：{datetime.utcnow().strftime('%m/%d %H:%M')}"
+
+    text = (
+        f"{direction_emoji} <b>跟单信号</b> {status_emoji.get(result.get('status','dry_run'),'🧪')}\n\n"
+        f"<b>市场：</b>{signal.market.question}\n"
+        f"<b>方向：</b>{direction_cn}\n"
+        f"<b>跟单：</b>$10 @ ${signal.market_price:.2f}\n"
+        f"<b>信号强度：</b>{signal.claude_materiality:.2f}（偏差{signal.edge:.3f}）\n"
+        f"<b>新闻：</b>{signal.headline[:200]}\n"
+        f"<b>来源：</b>{signal.source}\n"
+        f"<b>理由：</b>{signal.reasoning}\n"
+        f"<b>时间：</b>{datetime.utcnow().strftime('%m/%d %H:%M')}"
     )
+
+    # Buttons: link to Polymarket
+    market_url = f"https://polymarket.com/event/{signal.market.slug}"
+    buttons = [[
+        {"text": "📊 跟单信号", "callback_data": "copy_trade"},
+        {"text": "🔗 查看市场", "url": market_url},
+    ]]
+
+    return text, buttons
