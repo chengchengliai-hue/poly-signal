@@ -64,6 +64,18 @@ async def fetch_niche_markets(
 
             liq = float(evt.get("liquidity", 0))
             for m in evt.get("markets", []):
+                # Parse yes price from Gamma outcomePrices
+                prices_raw = m.get("outcomePrices", "")
+                yes_price = 0.5
+                if isinstance(prices_raw, str) and prices_raw:
+                    import json
+                    try:
+                        prices = json.loads(prices_raw)
+                        if len(prices) >= 1:
+                            yes_price = float(prices[0])
+                    except Exception:
+                        pass
+
                 token_ids_raw = m.get("clobTokenIds", "")
                 if isinstance(token_ids_raw, str) and token_ids_raw:
                     import json
@@ -74,6 +86,7 @@ async def fetch_niche_markets(
 
                 markets.append(Market(
                     id=m.get("id", ""),
+                    yes_price=yes_price,
                     question=m.get("question", ""),
                     slug=evt.get("slug", ""),
                     condition_id=m.get("conditionId", ""),
