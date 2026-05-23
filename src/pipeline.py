@@ -23,7 +23,7 @@ from src.config import (
     DEEPSEEK_API_KEY, TG_BOT_TOKEN, TG_CHAT_ID,
     POLYMARKET_API_KEY, MAX_BET_USD, EDGE_THRESHOLD,
 )
-from src.markets import fetch_niche_markets, Market
+from src.markets import fetch_niche_markets, Market, get_market_price
 from src.classifier import classify
 from src.edge import detect_edge, Signal
 from src.positions import open_position, update_all_prices, get_pnl_summary, format_positions_table
