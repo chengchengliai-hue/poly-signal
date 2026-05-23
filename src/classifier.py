@@ -5,9 +5,9 @@ from dataclasses import dataclass
 
 import anthropic
 
-import config
+from src import config
 
-client = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY)
+# Client initialized lazily in classify()
 
 PROMPT = """You are a prediction market analyst. Classify this news against the market question.
 
@@ -49,6 +49,7 @@ def classify(headline: str, question: str, yes_price: float = 0.5, source: str =
     )
 
     try:
+        client = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY)
         response = client.messages.create(
             model=config.CLAUDE_MODEL,
             max_tokens=200,

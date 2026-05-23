@@ -5,7 +5,7 @@ import math
 
 from src.classifier import Classification
 from src.markets import Market
-import config
+from src import config
 
 
 @dataclass

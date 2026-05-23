@@ -157,4 +157,4 @@ class NewsStream:
                     pass
             await asyncio.sleep(60)
 
-import config
+from src import config
