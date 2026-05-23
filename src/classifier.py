@@ -1,13 +1,11 @@
-"""Claude classification: bullish/bearish/neutral for news against a market."""
+"""News classifier: bullish/bearish/neutral via DeepSeek API (OpenAI-compatible)."""
 import json
 import time
 from dataclasses import dataclass
 
-import anthropic
+import httpx
 
 from src import config
-
-# Client initialized lazily in classify()
 
 PROMPT = """You are a prediction market analyst. Classify this news against the market question.
 
@@ -49,16 +47,24 @@ def classify(headline: str, question: str, yes_price: float = 0.5, source: str =
     )
 
     try:
-        client = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY)
-        response = client.messages.create(
-            model=config.CLAUDE_MODEL,
-            max_tokens=200,
-            temperature=0.1,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        text = response.content[0].text.strip()
+        with httpx.Client(timeout=15) as client:
+            resp = client.post(
+                "https://api.deepseek.com/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {config.DEEPSEEK_API_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": config.DEEPSEEK_MODEL,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "max_tokens": 200,
+                    "temperature": 0.1,
+                },
+            )
+            data = resp.json()
+            text = data["choices"][0]["message"]["content"].strip()
 
-        # Extract JSON from response
+        # Extract JSON from response (handle markdown code blocks)
         if "```" in text:
             text = text.split("```")[1]
             if text.startswith("json"):
@@ -75,7 +81,7 @@ def classify(headline: str, question: str, yes_price: float = 0.5, source: str =
             materiality=float(result.get("materiality", 0)),
             reasoning=str(result.get("reasoning", ""))[:200],
             latency_ms=int((time.time() - start) * 1000),
-            model=config.CLAUDE_MODEL,
+            model=config.DEEPSEEK_MODEL,
         )
 
     except Exception as e:
@@ -84,5 +90,5 @@ def classify(headline: str, question: str, yes_price: float = 0.5, source: str =
             materiality=0.0,
             reasoning=f"Classification failed: {str(e)[:100]}",
             latency_ms=int((time.time() - start) * 1000),
-            model=config.CLAUDE_MODEL,
+            model=config.DEEPSEEK_MODEL,
         )

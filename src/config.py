@@ -3,7 +3,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
+DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")
+DEEPSEEK_MODEL = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
 TWITTER_BEARER_TOKEN = os.getenv("TWITTER_BEARER_TOKEN", "")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHANNEL_IDS = os.getenv("TELEGRAM_CHANNEL_IDS", "").split(",") if os.getenv("TELEGRAM_CHANNEL_IDS") else []
@@ -25,7 +26,7 @@ TG_CHAT_ID = os.getenv("TG_CHAT_ID", "")
 
 GAMMA_BASE = "https://gamma-api.polymarket.com"
 CLOB_BASE = "https://clob.polymarket.com"
-CLAUDE_MODEL = "claude-sonnet-4-6"
+CLAUDE_MODEL = "deepseek-chat"
 
 # High-signal categories (news-driven, slow to price in)
 SIGNAL_CATEGORIES = [
