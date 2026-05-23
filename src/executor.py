@@ -8,7 +8,7 @@ from datetime import datetime
 import httpx
 
 from src.edge import Signal
-import config
+from src import config
 
 log = logging.getLogger(__name__)
 
