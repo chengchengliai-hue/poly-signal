@@ -63,23 +63,44 @@ async def handle_callback(callback_id: str, text: str):
 
 
 def get_smart_money_summary() -> str:
-    """Read smart money alerts from Go listener DB."""
+    """Read smart money alerts: whale USDT transfers + Polymarket trades."""
     try:
         conn = sqlite3.connect("/opt/listener/polygon_smart_money_watch.db")
-        rows = conn.execute(
-            "SELECT severity, score, substr(address,1,14), round(total_usd), substr(tags,1,50), substr(alerted_at,12,5) "
-            "FROM whale_alerts ORDER BY id DESC LIMIT 10"
-        ).fetchall()
 
-        high = conn.execute("SELECT COUNT(*) FROM whale_alerts WHERE severity='high'").fetchone()[0]
-        total = conn.execute("SELECT COUNT(*) FROM whale_alerts").fetchone()[0]
-        informed = conn.execute("SELECT COUNT(*) FROM informed_event_alerts").fetchone()[0]
+        # 巨鲸转账
+        whale_rows = conn.execute(
+            "SELECT severity, score, address, round(total_usd), substr(tags,1,40), substr(alerted_at,12,5) "
+            "FROM whale_alerts ORDER BY id DESC LIMIT 5"
+        ).fetchall()
+        whale_total = conn.execute("SELECT COUNT(*) FROM whale_alerts").fetchone()[0]
+        whale_high = conn.execute("SELECT COUNT(*) FROM whale_alerts WHERE severity='high'").fetchone()[0]
+
+        # Polymarket 下注
+        poly_rows = conn.execute(
+            "SELECT severity, score, substr(root_address,1,14), round(estimated_usdc), outcome, action, substr(category,1,20), substr(alerted_at,12,5) "
+            "FROM informed_event_alerts ORDER BY id DESC LIMIT 5"
+        ).fetchall()
+        poly_total = conn.execute("SELECT COUNT(*) FROM informed_event_alerts").fetchone()[0]
         conn.close()
 
-        lines = [f"<b>💡 聪明钱</b> | 总报警 {total} | 高危 {high} | Polymarket {informed}\n"]
-        for r in rows:
-            sev = "🔴" if r[0] == "high" else "🟡" if r[0] == "normal" else "⚪"
-            lines.append(f"{sev} {r[2]} ${r[3]:.0f} {r[4][:30]} {r[5]}")
+        lines = [f"<b>💡 聪明钱</b>\n巨鲸转账 {whale_total} 次 | 高危 {whale_high} | 下注 {poly_total} 次\n"]
+
+        if poly_rows:
+            lines.append("\n<b>🎯 最近下注：</b>")
+            for r in poly_rows:
+                sev = "🔴" if r[0] == "high" else "🟡" if r[0] == "normal" else "⚪"
+                outcome = r[4] or "?"
+                action = r[5] or ""
+                direction = f"{action} {outcome}"
+                lines.append(f"{sev} {direction} ${r[3]:.0f} | {r[2]} | {r[6][:15]} | {r[7]}")
+
+        if whale_rows:
+            lines.append("\n<b>💰 最近链上转账：</b>")
+            for r in whale_rows:
+                sev = "🔴" if r[0] == "high" else "🟡" if r[0] == "normal" else "⚪"
+                addr_short = r[2][:10] + "..." + r[2][-6:]
+                lines.append(f"{sev} {addr_short} ${r[3]:.0f} {r[4][:25]} {r[5]}")
+
         return "\n".join(lines)
     except Exception as e:
         return f"聪明钱数据读取失败: {e}"
