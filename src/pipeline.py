@@ -191,20 +191,21 @@ def display_signal(signal: Signal, pos=None):
 
 
 def build_telegram_message(signal: Signal, result: dict) -> str:
-    status_emoji = {"submitted": "✅", "filled": "✅", "dry_run": "🧪", "failed": "❌"}
-    status_text = {"submitted": "已提交", "filled": "已成交", "dry_run": "模拟盘", "failed": "失败"}
+    status_emoji = {"submitted": "🟢", "filled": "🟢", "dry_run": "🧪", "failed": "⚠️"}
+    status_text = {"submitted": "已开仓", "filled": "已开仓", "dry_run": "模拟跟单", "failed": "失败"}
     emoji = status_emoji.get(result.get("status", "dry_run"), "🧪")
     status_cn = status_text.get(result.get("status", "dry_run"), "未知")
 
-    direction_cn = "买入 YES（看多）" if signal.direction == "BUY_YES" else "买入 NO（看空）"
+    direction_emoji = "📈" if signal.direction == "BUY_YES" else "📉"
+    direction_cn = "买YES看多" if signal.direction == "BUY_YES" else "买NO看空"
     return (
-        f"{emoji} PolySignal {status_cn}\n\n"
+        f"{emoji} 跟单信号 {direction_emoji}\n\n"
         f"市场：{signal.market.question}\n"
         f"方向：{direction_cn}\n"
-        f"下注：${signal.bet_amount_usd}\n"
-        f"偏差：{signal.edge:.3f}（materiality {signal.claude_materiality:.2f}）\n"
+        f"跟单：$10 @ ${signal.market_price:.2f}\n"
+        f"信号强度：{signal.claude_materiality:.2f}（偏差{signal.edge:.3f}）\n"
         f"新闻：{signal.headline[:200]}\n"
         f"来源：{signal.source}\n"
         f"理由：{signal.reasoning}\n"
-        f"时间：{datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC"
+        f"时间：{datetime.utcnow().strftime('%m/%d %H:%M')}"
     )
