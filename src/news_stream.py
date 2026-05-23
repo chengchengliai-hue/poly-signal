@@ -135,9 +135,15 @@ class NewsStream:
         """RSS fallback — scrapes every 60s. Much slower but always available."""
         import feedparser
         feeds = [
-            "https://feeds.reuters.com/reuters/worldNews",
+            # Polymarket-relevant: politics, crypto, sports, macro
             "https://feeds.bloomberg.com/markets/news.rss",
+            "https://feeds.reuters.com/reuters/worldNews",
             "https://www.cnbc.com/id/100003114/device/rss/rss.html",
+            "https://rss.nytimes.com/services/xml/rss/nyt/Politics.xml",
+            "https://rss.nytimes.com/services/xml/rss/nyt/Business.xml",
+            "https://cointelegraph.com/rss",
+            "https://www.espn.com/espn/rss/news",
+            "https://feeds.bbci.co.uk/news/world/rss.xml",
         ]
         while self._running:
             for feed_url in feeds:
