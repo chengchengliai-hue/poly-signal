@@ -160,7 +160,7 @@ def get_pnl_summary() -> dict:
 
 def format_positions_table(positions: list[Position]) -> str:
     """Format positions as pretty table for Telegram."""
-    lines = ["📊 跟单持仓\n"]
+    lines = ["📊 跟单日报 | 持仓一览\n"]
     total_pnl = 0
     for p in positions:
         if p.status != "open":
