@@ -26,6 +26,7 @@ from src.config import (
 from src.markets import fetch_niche_markets, Market
 from src.classifier import classify
 from src.edge import detect_edge, Signal
+from src.positions import open_position, update_all_prices, get_pnl_summary, format_positions_table
 from src.executor import execute_trade, log_trade, send_telegram
 from src.news_stream import NewsStream, NewsEvent
 
@@ -71,6 +72,27 @@ async def run_pipeline(dry_run: bool = True):
             await asyncio.sleep(300)  # every 5 min
 
     market_task = asyncio.create_task(refresh_markets())
+
+    # Midnight P&L updater
+    async def midnight_pnl_update():
+        import asyncio as aio
+        while True:
+            now = datetime.now()
+            # Wait until 00:05
+            next_run = now.replace(hour=0, minute=5, second=0, microsecond=0)
+            if next_run <= now:
+                next_run = next_run.replace(day=now.day + 1)
+            wait_sec = (next_run - now).total_seconds()
+            await aio.sleep(wait_sec)
+            updated = await update_all_prices()
+            summary = get_pnl_summary()
+            log.info(f'PNL update: {updated} positions, total PNL ${summary["total_pnl"]}')
+            if summary['open_positions'] > 0:
+                positions = get_all_positions()
+                table = format_positions_table([p for p in positions if p.status == 'open'])
+                await send_telegram(table)
+
+    pnl_task = asyncio.create_task(midnight_pnl_update())
 
     # Main loop: process news events
     while True:
@@ -118,8 +140,17 @@ async def run_pipeline(dry_run: bool = True):
                 stats["signals_found"] += 1
                 stats["last_signal"] = signal
 
+                # Open follow position ( fixed)
+                pos = open_position(
+                    question=signal.market.question,
+                    direction=signal.direction,
+                    entry_price=signal.market.yes_price if signal.direction == 'BUY_YES' else (1.0 - signal.market.yes_price),
+                    headline=signal.headline,
+                    source=signal.source,
+                )
+
                 # Display
-                display_signal(signal)
+                display_signal(signal, pos)
 
                 # Execute
                 result = {"status": "dry_run"}
@@ -140,7 +171,7 @@ async def run_pipeline(dry_run: bool = True):
             await asyncio.sleep(1)
 
 
-def display_signal(signal: Signal):
+def display_signal(signal: Signal, pos=None):
     """Print signal to console."""
     color = "green" if signal.direction == "BUY_YES" else "red"
     direction_str = "📈 BUY YES" if signal.direction == "BUY_YES" else "📉 BUY NO"
@@ -151,7 +182,7 @@ def display_signal(signal: Signal):
     table.add_row("Market", signal.market.question)
     table.add_row("Direction", f"[bold {color}]{direction_str}[/]")
     table.add_row("Edge", f"{signal.edge:.3f} (materiality: {signal.claude_materiality:.2f})")
-    table.add_row("Bet", f"${signal.bet_amount_usd} (Kelly ¼)")
+    table.add_row("Bet", f"$10 (固定跟单) → {pos.shares:.0f} shares" if pos else f"${signal.bet_amount_usd}")
     table.add_row("News", signal.headline[:150])
     table.add_row("Source", signal.source)
     table.add_row("Reasoning", signal.reasoning)
