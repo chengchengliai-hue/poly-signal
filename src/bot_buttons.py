@@ -107,25 +107,32 @@ def get_smart_money_summary() -> str:
 
 
 def get_copy_trade_summary() -> str:
-    """Read copy trading positions from PolySignal DB."""
+    """Read copy trading positions with full detail."""
     try:
         conn = sqlite3.connect("/opt/poly-signal/data/positions.db")
         rows = conn.execute(
-            "SELECT direction, round(entry_price,2), round(pnl_usd,2), substr(market_question,1,40), substr(entry_time,12,5) "
-            "FROM positions ORDER BY id DESC LIMIT 10"
+            "SELECT id, direction, round(entry_price,2), round(current_price,2), round(pnl_usd,2), "
+            "bet_usd, round(shares,2), market_question, headline, substr(entry_time,12,5) "
+            "FROM positions ORDER BY id DESC LIMIT 12"
         ).fetchall()
 
         total = conn.execute("SELECT COUNT(*) FROM positions").fetchone()[0]
         open_pos = conn.execute("SELECT COUNT(*) FROM positions WHERE status='open'").fetchone()[0]
         total_pnl = conn.execute("SELECT COALESCE(SUM(pnl_usd),0) FROM positions WHERE status='open'").fetchone()[0]
+        total_invested = conn.execute("SELECT COALESCE(SUM(bet_usd),0) FROM positions").fetchone()[0]
         conn.close()
 
         pnl_sign = "+$" if total_pnl >= 0 else "-$"
-        lines = [f"<b>📊 跟单信号</b> | {total}笔 | 持仓{open_pos} | 盈亏{pnl_sign}{abs(total_pnl):.2f}\n"]
+        lines = [f"<b>📊 跟单信号</b> | {total}笔 | 持仓{open_pos} | 盈亏{pnl_sign}{abs(total_pnl):.2f} | 投入${total_invested:.0f}\n"]
         for r in rows:
             dir_emoji = "📈" if r[0] == "BUY_YES" else "📉"
-            pnl_str = f"+${r[2]:.2f}" if (r[2] or 0) >= 0 else f"-${abs(r[2] or 0):.2f}"
-            lines.append(f"{dir_emoji} @${r[1]:.2f} {pnl_str} | {r[3][:30]} {r[4]}")
+            pnl_str = f"+${r[4]:.2f}" if (r[4] or 0) >= 0 else f"-${abs(r[4] or 0):.2f}"
+            cur_price = f"→ ${r[3]:.2f}" if r[3] else "待更新"
+            lines.append(
+                f"{dir_emoji} #{r[0]} 入场${r[2]:.2f} {cur_price} | {pnl_str}\n"
+                f"    {r[7][:50]}\n"
+                f"    来源: {r[8][:40] if r[8] else ''} | {r[9]}"
+            )
         return "\n".join(lines)
     except Exception as e:
         return f"跟单数据读取失败: {e}"
