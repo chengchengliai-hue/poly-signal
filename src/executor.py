@@ -72,15 +72,20 @@ def execute_trade(signal: Signal) -> dict:
         return {"status": "failed", "reason": str(e)[:100]}
 
 
-async def send_telegram(text: str):
-    """Send signal to Telegram."""
+async def send_telegram(text: str, buttons: list[list[dict]] = None):
+    """Send signal to Telegram with optional inline keyboard buttons."""
     if not config.TG_BOT_TOKEN or not config.TG_CHAT_ID:
         return
+    payload = {"chat_id": config.TG_CHAT_ID, "text": text, "parse_mode": "HTML"}
+    if buttons:
+        import json
+        payload["reply_markup"] = json.dumps({"inline_keyboard": buttons})
+
     async with httpx.AsyncClient(timeout=10) as client:
         try:
-            await client.get(
+            await client.post(
                 f"https://api.telegram.org/bot{config.TG_BOT_TOKEN}/sendMessage",
-                params={"chat_id": config.TG_CHAT_ID, "text": text},
+                json=payload,
             )
         except Exception:
             pass
