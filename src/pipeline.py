@@ -140,7 +140,18 @@ async def run_pipeline(dry_run: bool = True):
                 stats["signals_found"] += 1
                 stats["last_signal"] = signal
 
-                # Open follow position ( fixed)
+                # Dedup: skip same headline within 5 min
+                try:
+                    import sqlite3
+                    c2 = sqlite3.connect('data/positions.db')
+                    dup = c2.execute("SELECT COUNT(*) FROM positions WHERE headline=? AND entry_time > datetime('now', '-5 minutes')", (signal.headline,)).fetchone()[0]
+                    c2.close()
+                    if dup > 0:
+                        continue
+                except Exception:
+                    pass
+
+                # Open follow position (fixed $10)
                 pos = open_position(
                     question=signal.market.question,
                     direction=signal.direction,
