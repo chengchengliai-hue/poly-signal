@@ -39,7 +39,7 @@ stats = {
     "signals_found": 0,
     "trades_executed": 0,
     "start_time": time.time(),
-    "last_signal": None as Signal | None,
+    "last_signal": None,
 }
 
 
