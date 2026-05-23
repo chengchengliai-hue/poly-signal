@@ -90,7 +90,6 @@ async def fetch_niche_markets(
                     question=m.get("question", ""),
                     slug=evt.get("slug", ""),
                     condition_id=m.get("conditionId", ""),
-                    yes_price=0.5,
                     volume=vol,
                     liquidity=liq,
                     category=cat,
