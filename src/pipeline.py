@@ -162,9 +162,9 @@ async def run_pipeline(dry_run: bool = True):
                 # Log
                 log_trade(signal, result)
 
-                # Telegram alert
-                tg_msg, buttons = build_telegram_message(signal, result)
-                await send_telegram(tg_msg, buttons)
+                # Telegram alert disabled — use 跟单 button instead
+                # tg_msg, buttons = build_telegram_message(signal, result)
+                # await send_telegram(tg_msg, buttons)
 
         except Exception as e:
             log.error(f"Pipeline error: {e}")
