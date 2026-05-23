@@ -20,7 +20,13 @@ Source: {source}
 
 ## Task
 1. Does this news make the market MORE likely to resolve YES (bullish), NO (bearish), or NO IMPACT (neutral)?
-2. How MATERIAL is this? 0.0 = irrelevant noise, 1.0 = definitive proof that moves the price.
+2. Rate MATERIALITY — how much should this news move the market price?
+   0.1-0.3 = tangentially relevant, minor impact expected
+   0.4-0.7 = strong directional signal, likely to move the market meaningfully
+   0.8-1.0 = official/definitive confirmation, outcome is near certain
+
+   Important: Even if you're not 100% sure, strong signals should score in the 0.4-0.7 range.
+   DO NOT reserve high scores only for definitive proof.
 
 Respond ONLY with valid JSON:
 {{"direction": "bullish" | "bearish" | "neutral", "materiality": <0.0-1.0>, "reasoning": "<1 sentence>"}}"""
