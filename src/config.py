@@ -19,7 +19,7 @@ DAILY_LOSS_LIMIT_USD = float(os.getenv("DAILY_LOSS_LIMIT_USD", "100"))
 EDGE_THRESHOLD = float(os.getenv("EDGE_THRESHOLD", "0.10"))
 MAX_VOLUME_USD = float(os.getenv("MAX_VOLUME_USD", "500000"))
 MIN_VOLUME_USD = float(os.getenv("MIN_VOLUME_USD", "1000"))
-MATERIALITY_THRESHOLD = float(os.getenv("MATERIALITY_THRESHOLD", "0.6"))
+MATERIALITY_THRESHOLD = float(os.getenv("MATERIALITY_THRESHOLD", "0.35"))
 
 TG_BOT_TOKEN = os.getenv("TG_BOT_TOKEN", "")
 TG_CHAT_ID = os.getenv("TG_CHAT_ID", "")
