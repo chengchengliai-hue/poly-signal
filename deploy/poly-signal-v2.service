@@ -1,0 +1,21 @@
+[Unit]
+Description=Poly Signal v2 virtual copy trader
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/poly-signal-v2
+Environment=PYTHONUNBUFFERED=1
+EnvironmentFile=/opt/poly-signal-v2/.env
+ExecStart=/opt/poly-signal-v2/.venv/bin/python /opt/poly-signal-v2/main.py
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=20
+KillSignal=SIGTERM
+StandardOutput=append:/opt/listener/py-signal.log
+StandardError=append:/opt/listener/py-signal.log
+
+[Install]
+WantedBy=multi-user.target
